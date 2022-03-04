@@ -11,6 +11,7 @@ import Text.Blaze.Html.Renderer.Text
 import Data.Text.Lazy (toStrict)
 import Types
 import Paths_synapse
+import Data.Yaml (decodeFileEither, ParseException, prettyPrintParseException)
 
 
 getMarkdownFiles :: IO [FilePath]
@@ -48,17 +49,26 @@ createNote filePath = do
   let contentWithInnerLinks = createNoteInnerLinks (getNoteInnerLinkIdentifiers content) (pack content)
   return $ Note (pack $ getNoteIdentifier filePath) (pack content) (commonmarkToHtml [optUnsafe] contentWithInnerLinks)
 
-run :: IO ()
-run = do
+preprocess :: IO ()
+preprocess = do
   distExists <- doesDirectoryExist "./dist"
-  markdownFiles <- getMarkdownFiles
-  allNotes <- mapM createNote markdownFiles
-  cssFileLocation <- getDataFileName "resources/style.css"
   when distExists $ removeDirectoryRecursive "./dist"
+  cssFileLocation <- getDataFileName "resources/style.css"
   createDirectory "./dist"
   createDirectory "./dist/style"
   copyFile cssFileLocation "./dist/style/style.css"
+
+run :: IO ()
+run = do
+  markdownFiles <- getMarkdownFiles
+  allNotes <- mapM createNote markdownFiles
   mapM_ writeNote allNotes
+  config <- decodeFileEither "synapse.yaml" :: IO (Either ParseException Config)
+  case config of
+    Left e -> do 
+      putStrLn "There was an issue while parsing the config file"
+      print $ prettyPrintParseException e
+    Right c -> print c
   where
     writeNote :: Note -> IO ()
     writeNote note = DTIO.writeFile ("./dist/" ++ unpack (nIdentifier note) ++ ".html") (toStrict $ renderHtml $ noteTemplate note)

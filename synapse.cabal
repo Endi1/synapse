@@ -27,4 +27,6 @@ executable synapse
                        cmark,
                        regex-tdfa,
                        directory,
-                       blaze-html
+                       blaze-html,
+                       yaml,
+                       rio
