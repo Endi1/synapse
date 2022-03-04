@@ -1,15 +1,17 @@
 {-# LANGUAGE OverloadedStrings  #-}
 module Main where
-import Data.Text (Text, pack, replace, append)
+import Data.Text (Text, pack, replace, append, unpack)
+import qualified Data.Text.IO as DTIO
 import System.Directory
 import Text.Regex.TDFA
 import CMark
+import Control.Monad (when)
+import Templates (noteTemplate)
+import Text.Blaze.Html.Renderer.Text
+import Data.Text.Lazy (toStrict)
+import Types
+import Paths_synapse
 
-data Note  = Note {
-  nIdentifier :: Text,
-  nRawContent :: Text,
-  nCompiledContent :: Text
-} deriving Show
 
 getMarkdownFiles :: IO [FilePath]
 getMarkdownFiles = do
@@ -46,12 +48,21 @@ createNote filePath = do
   let contentWithInnerLinks = createNoteInnerLinks (getNoteInnerLinkIdentifiers content) (pack content)
   return $ Note (pack $ getNoteIdentifier filePath) (pack content) (commonmarkToHtml [optUnsafe] contentWithInnerLinks)
 
-run :: IO [Note]
+run :: IO ()
 run = do
+  distExists <- doesDirectoryExist "./dist"
   markdownFiles <- getMarkdownFiles
-  mapM createNote markdownFiles
+  allNotes <- mapM createNote markdownFiles
+  cssFileLocation <- getDataFileName "resources/style.css"
+  when distExists $ removeDirectoryRecursive "./dist"
+  createDirectory "./dist"
+  createDirectory "./dist/style"
+  copyFile cssFileLocation "./dist/style/style.css"
+  mapM_ writeNote allNotes
+  where
+    writeNote :: Note -> IO ()
+    writeNote note = DTIO.writeFile ("./dist/" ++ unpack (nIdentifier note) ++ ".html") (toStrict $ renderHtml $ noteTemplate note)
+
 
 main :: IO ()
-main = do
-  notes <- run
-  print notes
+main = run >> print "Successfully compiled notes"

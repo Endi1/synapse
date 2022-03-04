@@ -2,3 +2,6 @@ cradle:
   stack:
     - path: "./src/Main.hs"
       component: "synapse:exe:synapse"
+
+    - path: "./src/Templates.hs"
+      component: "synapse:exe:synapse"

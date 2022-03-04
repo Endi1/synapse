@@ -12,13 +12,19 @@ category:            Web
 build-type:          Simple
 cabal-version:       >=1.10
 extra-source-files:  README.md
+data-files:          resources/style.css
 
 executable synapse
   hs-source-dirs:      src
+  autogen-modules:     Paths_synapse
+  other-modules:       Templates,
+                       Types,
+                       Paths_synapse
   main-is:             Main.hs
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5,
                        text,
                        cmark,
                        regex-tdfa,
-                       directory
+                       directory,
+                       blaze-html
