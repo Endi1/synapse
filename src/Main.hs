@@ -12,6 +12,7 @@ import Data.Text.Lazy (toStrict)
 import Types
 import Paths_synapse
 import Data.Yaml (decodeFileEither, ParseException, prettyPrintParseException)
+import RIO (fromEither)
 
 
 getMarkdownFiles :: IO [FilePath]
@@ -53,26 +54,44 @@ preprocess :: IO ()
 preprocess = do
   distExists <- doesDirectoryExist "./dist"
   when distExists $ removeDirectoryRecursive "./dist"
-  cssFileLocation <- getDataFileName "resources/style.css"
+  cssFileLocation <- getDataFileName "resources/pico.min.css"
   createDirectory "./dist"
   createDirectory "./dist/style"
-  copyFile cssFileLocation "./dist/style/style.css"
+  copyFile cssFileLocation "./dist/style/pico.min.css"
 
-run :: IO ()
+writeNote :: Note -> IO ()
+writeNote note = DTIO.writeFile ("./dist/" ++ unpack (nIdentifier note) ++ ".html") (toStrict $ renderHtml $ noteTemplate note)
+
+createIndex :: Config -> [Note] -> Either Text (IO [Note])
+createIndex config notes = 
+  let
+    indexNoteList = filter (\n -> nIdentifier n == cIndex config) notes
+  in
+    case indexNoteList of
+      [] -> Left $ "Index with name " `append` cIndex config `append` " not found"
+      _ -> Right $ writeNote (head indexNoteList) >> return (filter (\n -> nIdentifier n /= cIndex config) notes)
+
+run :: IO (Either Text Text)
 run = do
-  markdownFiles <- getMarkdownFiles
-  allNotes <- mapM createNote markdownFiles
-  mapM_ writeNote allNotes
   config <- decodeFileEither "synapse.yaml" :: IO (Either ParseException Config)
   case config of
     Left e -> do 
       putStrLn "There was an issue while parsing the config file"
-      print $ prettyPrintParseException e
-    Right c -> print c
-  where
-    writeNote :: Note -> IO ()
-    writeNote note = DTIO.writeFile ("./dist/" ++ unpack (nIdentifier note) ++ ".html") (toStrict $ renderHtml $ noteTemplate note)
+      return $ Left $ pack $ prettyPrintParseException e
+    Right c -> do
+      markdownFiles <- getMarkdownFiles
+      allFiles <- mapM createNote markdownFiles
+      preprocess
+      case createIndex c allFiles of
+        Left e -> return $ Left e
+        Right ns -> do 
+          mapM_ writeNote =<< ns
+          return $ Right "Successfully compiled notes"
 
 
 main :: IO ()
-main = run >> print "Successfully compiled notes"
+main = do
+  runResult <- run
+  case runResult of
+    Left e -> print e
+    Right s -> print s

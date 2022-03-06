@@ -12,7 +12,8 @@ category:            Web
 build-type:          Simple
 cabal-version:       >=1.10
 extra-source-files:  README.md
-data-files:          resources/style.css
+data-files:          resources/style.css,
+                     resources/pico.min.css
 
 executable synapse
   hs-source-dirs:      src
