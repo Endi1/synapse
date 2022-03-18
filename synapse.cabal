@@ -30,4 +30,5 @@ executable synapse
                        directory,
                        blaze-html,
                        yaml,
-                       rio
+                       rio,
+                       cmark-gfm

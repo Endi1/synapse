@@ -4,7 +4,7 @@ import Data.Text (Text, pack, replace, append, unpack)
 import qualified Data.Text.IO as DTIO
 import System.Directory
 import Text.Regex.TDFA
-import CMark
+import CMarkGFM
 import Control.Monad (when)
 import Templates (noteTemplate)
 import Text.Blaze.Html.Renderer.Text
@@ -25,13 +25,13 @@ getMarkdownFiles = do
 
 getNoteIdentifier :: FilePath -> String
 getNoteIdentifier fp =
-  let (_, _, _, matches) = (fp :: String) =~ ("([a-zA-Z]+)\\.md$" :: String) :: (String, String, String, [String])
+  let (identifier, _, _, _) = (fp :: String) =~ ("\\.md$" :: String) :: (String, String, String, [String])
   in
-    head matches
+    identifier
 
 getNoteInnerLinkIdentifiers :: String -> [Text]
 getNoteInnerLinkIdentifiers noteContent =
-  let submatches = (noteContent :: String) =~ ("\\[\\[([a-zA-Z]+)\\]\\]" :: String) :: [[String]]
+  let submatches = (noteContent :: String) =~ ("\\[\\[([a-zA-Z]+(([[:space:]]|_|:|-|\\.|,|')*[a-zA-Z]+)*)\\]\\]" :: String) :: [[String]]
   in
     map (pack . (!! 1)) submatches
 
@@ -41,14 +41,14 @@ createNoteInnerLinks outerLinkIdentifiers noteContent
       (\ outerLinkIdentifier
          -> replace
               ("[[" `append` outerLinkIdentifier `append` "]]")
-              ("<a href='" `append` outerLinkIdentifier `append` ".html'>" `append` outerLinkIdentifier `append` "</a>"))
+              ("<a href=\"" `append` outerLinkIdentifier `append` ".html\">" `append` outerLinkIdentifier `append` "</a>"))
       noteContent outerLinkIdentifiers
 
 createNote :: FilePath -> IO Note
 createNote filePath = do
   content <- readFile filePath
   let contentWithInnerLinks = createNoteInnerLinks (getNoteInnerLinkIdentifiers content) (pack content)
-  return $ Note (pack $ getNoteIdentifier filePath) (pack content) (commonmarkToHtml [optUnsafe] contentWithInnerLinks)
+  return $ Note (pack $ getNoteIdentifier filePath) (pack content) (commonmarkToHtml [optUnsafe] [extTable] contentWithInnerLinks)
 
 preprocess :: IO ()
 preprocess = do

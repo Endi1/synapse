@@ -12,4 +12,6 @@ noteTemplate n = docTypeHtml $ do
         link ! href "style/pico.min.css" ! rel "stylesheet"
     body $ do
         H.main ! class_ "container" $ do
-            preEscapedText $ nCompiledContent n
+            article $ do
+                header $ toHtml $ nIdentifier n
+                preEscapedText $ nCompiledContent n
