@@ -7,7 +7,7 @@ import Data.Monoid
 import Control.Monad
 import Test.HUnit
 
-import SynapseUtils ( getNoteIdentifier, getMarkdownFiles, getNoteInnerLinkIdentifiers, createNoteInnerLinks, createNote, compileToMarkdown )
+import SynapseUtils ( getNoteIdentifier, getMarkdownFiles, getNoteInnerLinkIdentifiers, createNoteInnerLinks, createNote, compileToMarkdown, createIndexNote )
 import Types
 
 testGetNoteIdentifier :: Assertion
@@ -37,11 +37,23 @@ testCreateNote = assertEqual ""
        (createNote "note.md" "This is the note body") 
        (Note {_nIdentifier="note", _nDistFileName = "note", _nRawContent="This is the note body", _nCompiledContent=compileToMarkdown "This is the note body"})
 
+testCreateIndexNoteSuccess :: Assertion
+testCreateIndexNoteSuccess = assertEqual ""
+       (createIndexNote (Config "project name" "notindex") [Note "notindex" "notindex" "" ""])
+       (Right $ Note "notindex" "index" "" "")
+
+testCreateIndexNoteFailure :: Assertion
+testCreateIndexNoteFailure = assertEqual ""
+       (createIndexNote (Config "project name" "notindex") [Note "note" "note" "" ""])
+       (Left "File with name notindex not found")
+
 main :: IO ()
 main = defaultMainWithOpts
        [
               testCase "getNoteIdentifier" testGetNoteIdentifier, 
               testCase "getMarkdownFiles" testGetMarkdownFiles, 
-              testCase "getNoteInnerLinkIdentifiers" testGetNoteInnerLinkIdentifiers
+              testCase "getNoteInnerLinkIdentifiers" testGetNoteInnerLinkIdentifiers,
+              testCase "createIndexNote success" testCreateIndexNoteSuccess,
+              testCase "createIndexNote failure" testCreateIndexNoteFailure
        ]
        mempty

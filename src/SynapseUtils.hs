@@ -30,14 +30,13 @@ import Control.Lens
 writeNote :: Note -> IO ()
 writeNote note = DTIO.writeFile ("./dist/" ++ unpack (_nIdentifier note) ++ ".html") (toStrict $ renderHtml $ noteTemplate note)
 
-makeLenses ''Note
 createIndexNote :: Config -> [Note] -> Either Text Note
 createIndexNote config notes =
   let
     indexNoteList = filter (\n -> _nIdentifier n == cIndex config) notes
   in
     case indexNoteList of
-      [] -> Left $ "Index with name " `append` cIndex config `append` " not found"
+      [] -> Left $ "File with name " `append` cIndex config `append` " not found"
       _ -> Right (head indexNoteList & nDistFileName .~ "index")
 
 preprocess :: IO ()

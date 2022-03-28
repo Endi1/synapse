@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE TemplateHaskell #-}
 
-module Types (Note(..), Config(..)) where
+module Types (Note(..), Config(..), nDistFileName) where
 
 import Data.Text ( Text )
 import GHC.Generics
@@ -15,6 +16,7 @@ data Note  = Note {
   _nRawContent :: Text,
   _nCompiledContent :: Text
 } deriving (Show, Eq)
+makeLenses ''Note
 
 
 data Config = Config {
