@@ -2,16 +2,16 @@
 
 module Templates (noteTemplate) where
 import Text.Blaze.Html5 as H
-import Types (Note (nIdentifier, nCompiledContent))
+import Types (Note (_nIdentifier, _nCompiledContent))
 import Text.Blaze.Html5.Attributes (href, rel, class_)
 
 noteTemplate :: Note -> Html
 noteTemplate n = docTypeHtml $ do
     H.head $ do
-        H.title (toHtml $ nIdentifier n)
+        H.title (toHtml $ _nIdentifier n)
         link ! href "style/pico.min.css" ! rel "stylesheet"
     body $ do
         H.main ! class_ "container" $ do
             article $ do
-                header $ toHtml $ nIdentifier n
-                preEscapedText $ nCompiledContent n
+                header $ toHtml $ _nIdentifier n
+                preEscapedText $ _nCompiledContent n
