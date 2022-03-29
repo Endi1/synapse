@@ -7,7 +7,7 @@ import Data.Monoid
 import Control.Monad
 import Test.HUnit
 
-import SynapseUtils ( getNoteIdentifier, getMarkdownFiles, getNoteInnerLinkIdentifiers, createNoteInnerLinks, createNote, compileToMarkdown, createIndexNote )
+import SynapseUtils ( getNoteIdentifier, getMarkdownFiles, getNoteInnerLinkIdentifiers, createNoteInnerLinks, createNote, compileToMarkdown )
 import Types
 
 testGetNoteIdentifier :: Assertion
@@ -30,22 +30,13 @@ testGetNoteInnerLinkIdentifiers = assertEqual ""
 testCreateNoteInnerLinks :: Assertion
 testCreateNoteInnerLinks = assertEqual "" 
        (createNoteInnerLinks ["first", "second inner", "third_link", "fourth-link"] "This is [[first]] and\na [[second inner]] and a\n [[third_link]] and a [[fourth-link]]\n while [this is not](foobar)")
-       "This is <a href=\"first.html\">first</a> and\na <a href=\"second inner.html\">second inner</a> and a\n <a href=\"third_link.html\">third link</a> and a [[fourth-link]]\n while [this is not](foobar)"
+       "This is <a href=\"first.html\">first</a> and\na <a href=\"second inner.html\">second inner</a> and a\n <a href=\"third_link.html\">third_link</a> and a <a href=\"fourth-link.html\">fourth-link</a>\n while [this is not](foobar)"
 
 testCreateNote :: Assertion
 testCreateNote = assertEqual ""
        (createNote "note.md" "This is the note body") 
        (Note {_nIdentifier="note", _nDistFileName = "note", _nRawContent="This is the note body", _nCompiledContent=compileToMarkdown "This is the note body"})
 
-testCreateIndexNoteSuccess :: Assertion
-testCreateIndexNoteSuccess = assertEqual ""
-       (createIndexNote (Config "project name" "notindex") [Note "notindex" "notindex" "" ""])
-       (Right $ Note "notindex" "index" "" "")
-
-testCreateIndexNoteFailure :: Assertion
-testCreateIndexNoteFailure = assertEqual ""
-       (createIndexNote (Config "project name" "notindex") [Note "note" "note" "" ""])
-       (Left "File with name notindex not found")
 
 main :: IO ()
 main = defaultMainWithOpts
@@ -53,7 +44,7 @@ main = defaultMainWithOpts
               testCase "getNoteIdentifier" testGetNoteIdentifier, 
               testCase "getMarkdownFiles" testGetMarkdownFiles, 
               testCase "getNoteInnerLinkIdentifiers" testGetNoteInnerLinkIdentifiers,
-              testCase "createIndexNote success" testCreateIndexNoteSuccess,
-              testCase "createIndexNote failure" testCreateIndexNoteFailure
+              testCase "createNoteInnerLinks" testCreateNoteInnerLinks,
+              testCase "createNote" testCreateNote
        ]
        mempty

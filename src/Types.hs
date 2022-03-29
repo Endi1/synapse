@@ -2,13 +2,12 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Types (Note(..), Config(..), nDistFileName) where
+module Types (Note(..), Config(..), Synapse(..), File(..), nDistFileName) where
 
 import Data.Text ( Text )
 import GHC.Generics
 import Data.Yaml
 import Control.Lens
-
 
 data Note  = Note {
   _nIdentifier :: Text,
@@ -28,3 +27,11 @@ instance FromJSON Config where
   parseJSON (Object c) = Config
     <$> c .: "name"
     <*> c .: "index"
+
+data Synapse = Synapse {
+  sConfig :: Config,
+  sIndexNote :: Note,
+  sRestOfNotes :: [Note]
+}
+
+type File = (Text, Text)

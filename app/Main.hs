@@ -13,14 +13,14 @@ import Data.Yaml (decodeFileEither, ParseException, prettyPrintParseException)
 import RIO (fromEither)
 import Types
 import SynapseUtils (
-  getNoteIdentifier, 
-  getMarkdownFiles, 
-  getNoteInnerLinkIdentifiers, 
-  createNoteInnerLinks, 
-  createNote, 
-  preprocess, 
-  createIndexNote, 
-  writeNote
+  getNoteIdentifier,
+  getMarkdownFiles,
+  getNoteInnerLinkIdentifiers,
+  createNoteInnerLinks,
+  createNote,
+  preprocess,
+  writeNote,
+  createSynapse
   )
 
 
@@ -33,14 +33,15 @@ run = do
       return $ Left $ pack $ prettyPrintParseException e
     Right c -> do
       allFiles <- listDirectory "."
-      noteContents <- mapM (\fp -> do
+      noteFiles <- mapM (\fp -> do
                                     fileContent <- pack <$> readFile fp
-                                    return (fp, fileContent)) (getMarkdownFiles allFiles)
+                                    return (pack fp, fileContent)) (getMarkdownFiles allFiles)
       preprocess
-      case createIndexNote c (map (uncurry createNote) noteContents) of
+      case createSynapse c noteFiles of
         Left e -> return $ Left e
-        Right ns -> do
-          -- mapM_ writeNote =<< ns
+        Right synapse -> do
+          writeNote $ sIndexNote synapse
+          mapM_ writeNote (sRestOfNotes synapse)
           return $ Right "Successfully compiled notes"
 
 

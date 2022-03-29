@@ -1,6 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
-
 
 module SynapseUtils (
   getNoteIdentifier,
@@ -10,8 +8,8 @@ module SynapseUtils (
   createNote,
   compileToMarkdown,
   preprocess,
-  createIndexNote,
-  writeNote
+  writeNote,
+  createSynapse
 ) where
 import Text.Regex.TDFA
 import Control.Monad (when)
@@ -26,18 +24,10 @@ import Data.Text.Internal.Builder (writeN)
 import qualified Data.Text.IO as DTIO
 import Data.Text.Lazy (toStrict)
 import Control.Lens
+import RIO.List
 
 writeNote :: Note -> IO ()
 writeNote note = DTIO.writeFile ("./dist/" ++ unpack (_nIdentifier note) ++ ".html") (toStrict $ renderHtml $ noteTemplate note)
-
-createIndexNote :: Config -> [Note] -> Either Text Note
-createIndexNote config notes =
-  let
-    indexNoteList = filter (\n -> _nIdentifier n == cIndex config) notes
-  in
-    case indexNoteList of
-      [] -> Left $ "File with name " `append` cIndex config `append` " not found"
-      _ -> Right (head indexNoteList & nDistFileName .~ "index")
 
 preprocess :: IO ()
 preprocess = do
@@ -48,7 +38,21 @@ preprocess = do
   createDirectory "./dist/style"
   copyFile cssFileLocation "./dist/style/pico.min.css"
 
-createNote :: FilePath -> Text -> Note
+createSynapse :: Config -> [File] -> Either Text Synapse
+createSynapse config noteFiles =
+  let
+    restNotesFiles = filter (\(fp, _) -> fp /= cIndex config `append` ".md") noteFiles
+    mIndexNote = find (\noteFile -> fst noteFile == cIndex config) noteFiles
+  in
+    case mIndexNote of 
+      Nothing -> Left $ "File with name " `append` cIndex config `append` " not found"
+      Just indexNote -> Right $ Synapse {
+        sConfig = config, 
+        sIndexNote = uncurry createNote indexNote & nDistFileName .~ "index",
+        sRestOfNotes = map (uncurry createNote) restNotesFiles
+      }
+
+createNote :: Text -> Text -> Note
 createNote filePath noteContent =
   let
     contentWithInnerLinks = createNoteInnerLinks (getNoteInnerLinkIdentifiers noteContent) noteContent
@@ -60,9 +64,9 @@ createNote filePath noteContent =
       _nCompiledContent = compileToMarkdown contentWithInnerLinks
     }
 
-getNoteIdentifier :: FilePath -> Text
+getNoteIdentifier :: Text -> Text
 getNoteIdentifier fp =
-  let (identifier, _, _, _) = (pack fp :: Text) =~ ("\\.md$" :: Text) :: (Text, Text, Text, [Text])
+  let (identifier, _, _, _) = (fp :: Text) =~ ("\\.md$" :: Text) :: (Text, Text, Text, [Text])
   in
     identifier
 
