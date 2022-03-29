@@ -1,23 +1,12 @@
 {-# LANGUAGE OverloadedStrings  #-}
 
 module Main where
-import Data.Text (Text, pack, replace, append, unpack)
-import qualified Data.Text.IO as DTIO
-import System.Directory
-import Text.Regex.TDFA
-import Control.Monad (when)
-import Templates (noteTemplate)
-import Text.Blaze.Html.Renderer.Text
-import Data.Text.Lazy (toStrict)
+import Data.Text (Text, pack)
+import System.Directory ( listDirectory )
 import Data.Yaml (decodeFileEither, ParseException, prettyPrintParseException)
-import RIO (fromEither)
-import Types
+import Types ( Config, Synapse(..) )
 import SynapseUtils (
-  getNoteIdentifier,
   getMarkdownFiles,
-  getNoteInnerLinkIdentifiers,
-  createNoteInnerLinks,
-  createNote,
   preprocess,
   writeNote,
   createSynapse

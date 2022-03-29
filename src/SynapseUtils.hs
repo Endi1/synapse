@@ -11,20 +11,26 @@ module SynapseUtils (
   writeNote,
   createSynapse
 ) where
-import Text.Regex.TDFA
+
+import Text.Regex.TDFA ( (=~) )
 import Control.Monad (when)
 import System.Directory
+    ( copyFile,
+      createDirectory,
+      doesDirectoryExist,
+      removeDirectoryRecursive )
 import Data.Text (Text, pack, replace, append, unpack)
-import Text.Blaze.Html.Renderer.Text
+import Text.Blaze.Html.Renderer.Text ( renderHtml )
 import Templates (noteTemplate)
-import CMarkGFM
+import CMarkGFM ( commonmarkToHtml, extTable, optUnsafe )
 import Types
+    ( nDistFileName, Config(..), File, Note(..), Synapse(..) )
 import Paths_synapse (getDataFileName)
 import Data.Text.Internal.Builder (writeN)
 import qualified Data.Text.IO as DTIO
 import Data.Text.Lazy (toStrict)
-import Control.Lens
-import RIO.List
+import Control.Lens ( (&), (.~) )
+import RIO.List ( find )
 
 writeNote :: Note -> IO ()
 writeNote note = DTIO.writeFile ("./dist/" ++ unpack (_nIdentifier note) ++ ".html") (toStrict $ renderHtml $ noteTemplate note)
