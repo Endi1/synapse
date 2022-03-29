@@ -15,12 +15,29 @@ extra-source-files:  README.md
 data-files:          resources/style.css,
                      resources/pico.min.css
 
-executable synapse
+library
   hs-source-dirs:      src
+  exposed-modules:     Types, Templates, SynapseUtils
   autogen-modules:     Paths_synapse
-  other-modules:       Templates,
-                       Types,
-                       Paths_synapse
+  other-modules:       Paths_synapse
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5,
+                     text,
+                     cmark,
+                     regex-tdfa,
+                     directory,
+                     blaze-html,
+                     yaml,
+                     rio,
+                     cmark-gfm,
+                     lens
+
+
+
+executable synapse-exe
+  hs-source-dirs:      app
+  autogen-modules:     Paths_synapse
+  other-modules:       Paths_synapse
   main-is:             Main.hs
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5,
@@ -31,4 +48,15 @@ executable synapse
                        blaze-html,
                        yaml,
                        rio,
-                       cmark-gfm
+                       cmark-gfm,
+                       synapse
+Test-Suite test-synapse
+  type:               exitcode-stdio-1.0
+  main-is:            Main.hs
+  hs-source-dirs:     test
+  build-depends:      base >=4.7 && <5,
+                      test-framework,
+                      test-framework-hunit,
+                      HUnit,
+                      synapse
+  default-language:   Haskell2010
