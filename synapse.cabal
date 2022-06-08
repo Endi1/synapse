@@ -21,18 +21,17 @@ library
   autogen-modules:     Paths_synapse
   other-modules:       Paths_synapse
   default-language:    Haskell2010
-  build-depends:       base >= 4.7 && < 5,
-                     text,
-                     cmark,
-                     regex-tdfa,
-                     directory,
-                     blaze-html,
-                     yaml,
-                     rio,
-                     cmark-gfm,
-                     lens
-
-
+  build-depends:      base >= 4.7 && < 5,
+                      text,
+                      cmark,
+                      regex-tdfa,
+                      directory,
+                      blaze-html,
+                      yaml,
+                      rio,
+                      cmark-gfm,
+                      lens,
+                      sqlite-simple
 
 executable synapse-exe
   hs-source-dirs:      app
@@ -46,6 +45,7 @@ executable synapse-exe
                        yaml,
                        rio,
                        synapse
+
 Test-Suite test-synapse
   type:               exitcode-stdio-1.0
   main-is:            Main.hs
