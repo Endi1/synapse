@@ -26,7 +26,8 @@ executable synapse
                        rio,
                        sqlite-simple,
                        scotty,
-                       blaze-html
+                       blaze-html,
+                       cmark-gfm
   ghc-options:         -Wall
                        -Wcompat
                        -Widentities

@@ -2,9 +2,10 @@
 
 module Templates (index, synapse) where
 
+import CMarkGFM (commonmarkToHtml)
 import Control.Monad (forM_)
 import RIO (Int64)
-import RIO.Text.Lazy (Text)
+import RIO.Text.Lazy (Text, toStrict)
 import Text.Blaze.Html ((!))
 import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes (href)
@@ -22,5 +23,4 @@ synapse (_, rowText) = H.docTypeHtml $ do
   H.head $ do
     H.title "Hello Synapse!"
   H.body $ do
-    H.h1 "Hello world"
-    H.p $ H.toHtml rowText
+    H.preEscapedToHtml $ commonmarkToHtml [] [] $ toStrict rowText
