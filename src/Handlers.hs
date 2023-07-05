@@ -4,7 +4,7 @@
 module Handlers (index, synapse) where
 
 import Database.SQLite.Simple
-import RIO (Int64, MonadIO (liftIO))
+import RIO (Bifunctor (second), Int64, MonadIO (liftIO))
 import RIO.Text.Lazy (Text, take)
 import Templates qualified
 import Text.Blaze.Html.Renderer.Text (renderHtml)
@@ -14,7 +14,7 @@ index :: Scotty.ActionM ()
 index =
   do
     rows <- liftIO getRows
-    Scotty.html $ renderHtml $ Templates.index (map (RIO.Text.Lazy.take 25 . snd) rows)
+    Scotty.html $ renderHtml $ Templates.index (map (second (RIO.Text.Lazy.take 25)) rows)
 
 synapse :: Integer -> Scotty.ActionM ()
 synapse rowID = do
