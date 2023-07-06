@@ -4,23 +4,22 @@ module Templates (index, synapse) where
 
 import CMarkGFM (commonmarkToHtml)
 import Control.Monad (forM_)
-import RIO (Int64)
-import RIO.Text.Lazy (Text, toStrict)
 import Text.Blaze.Html ((!))
 import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes (href)
+import Types qualified (Synapse (..))
 
-index :: [(Int64, Text)] -> H.Html
-index synapseHeaders = H.docTypeHtml $ do
+index :: [Types.Synapse] -> H.Html
+index synapses = H.docTypeHtml $ do
   H.head $ do
     H.title "Hello Synapse!"
   H.body $ do
     H.h1 "Hello world"
-    H.ul $ forM_ synapseHeaders (\(i, t) -> H.li $ (H.a ! href (H.toValue $ "/" ++ show i)) $ H.toHtml t)
+    H.ul $ forM_ synapses (\s -> H.li $ (H.a ! href (H.toValue $ "/" ++ show (Types.id s))) $ H.toHtml (Types.name s))
 
-synapse :: (Int64, Text) -> H.Html
-synapse (_, rowText) = H.docTypeHtml $ do
+synapse :: Types.Synapse -> H.Html
+synapse synapseRow = H.docTypeHtml $ do
   H.head $ do
-    H.title "Hello Synapse!"
+    H.title $ H.toHtml $ Types.name synapseRow
   H.body $ do
-    H.preEscapedToHtml $ commonmarkToHtml [] [] $ toStrict rowText
+    H.preEscapedToHtml $ commonmarkToHtml [] [] $ Types.content synapseRow

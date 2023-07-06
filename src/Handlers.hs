@@ -4,29 +4,33 @@
 module Handlers (index, synapse) where
 
 import Database.SQLite.Simple
-import RIO (Bifunctor (second), Int64, MonadIO (liftIO))
-import RIO.Text.Lazy (Text, take)
+import RIO (MonadIO (liftIO))
+import RIO.List (headMaybe)
 import Templates qualified
 import Text.Blaze.Html.Renderer.Text (renderHtml)
+import Types (Synapse)
 import Web.Scotty qualified as Scotty
 
 index :: Scotty.ActionM ()
 index =
   do
     rows <- liftIO getRows
-    Scotty.html $ renderHtml $ Templates.index (map (second (RIO.Text.Lazy.take 25)) rows)
+    Scotty.html $ renderHtml $ Templates.index rows
 
 synapse :: Integer -> Scotty.ActionM ()
 synapse rowID = do
   row <- liftIO $ getRow rowID
-  Scotty.html $ renderHtml $ Templates.synapse (head row)
+  case row of
+    Nothing -> Scotty.text "Synapse could not be found"
+    Just s -> Scotty.html $ renderHtml $ Templates.synapse s
 
-getRows :: IO [(Int64, Text)]
+getRows :: IO [Synapse]
 getRows = do
   conn <- open "/home/endi/.synapse.db"
-  query_ conn "SELECT * FROM synapses" :: IO [(Int64, Text)]
+  query_ conn "SELECT id, name, content FROM synapses" :: IO [Synapse]
 
-getRow :: Integer -> IO [(Int64, Text)]
+getRow :: Integer -> IO (Maybe Synapse)
 getRow rowID = do
   conn <- open "/home/endi/.synapse.db"
-  query conn "SELECT * FROM synapses WHERE id=?" (Only rowID) :: IO [(Int64, Text)]
+  rows <- query conn "SELECT id, name, content FROM synapses WHERE id=?" (Only rowID) :: IO [Synapse]
+  return $ headMaybe rows

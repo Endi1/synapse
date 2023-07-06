@@ -1,4 +1,12 @@
-module Types (Command (..), Options, Arguments, mkArguments, command, options) where
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+
+module Types (Command (..), Options, Arguments, mkArguments, command, options, Synapse (..)) where
+
+import Database.SQLite.Simple (FromRow)
+import RIO (Generic, Int64, Text)
+
+-- COMMANDS
 
 data Command = Import | Serve deriving (Show)
 
@@ -33,3 +41,12 @@ command (Arguments c _) = c
 
 options :: Arguments -> [String]
 options (Arguments _ (Options os)) = os
+
+-- General Types
+
+data Synapse = Synapse
+  { id :: Int64,
+    name :: Text,
+    content :: Text
+  }
+  deriving (Show, Generic, FromRow)

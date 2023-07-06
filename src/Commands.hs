@@ -20,7 +20,7 @@ import' :: [String] -> IO Int64
 import' args = do
   file <- readFile (head args)
   conn <- DB.open "/home/endi/.synapse.db"
-  _ <- DB.execute conn "INSERT INTO synapses (content) VALUES (?)" (DB.Only file)
+  _ <- DB.execute conn "INSERT INTO synapses (content, name) VALUES (?, ?)" (file, head args)
   DB.lastInsertRowId conn
 
 serve' :: IO ()
