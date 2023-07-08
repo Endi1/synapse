@@ -4,6 +4,7 @@ module Templates (index, synapse) where
 
 import CMarkGFM (commonmarkToHtml)
 import Control.Monad (forM_)
+import RIO.Text (append)
 import Text.Blaze.Html ((!))
 import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes (href)
@@ -15,7 +16,7 @@ index synapses = H.docTypeHtml $ do
     H.title "Hello Synapse!"
   H.body $ do
     H.h1 "Hello world"
-    H.ul $ forM_ synapses (\s -> H.li $ (H.a ! href (H.toValue $ "/" ++ show (Types.id s))) $ H.toHtml (Types.name s))
+    H.ul $ forM_ synapses (\s -> H.li $ (H.a ! href (H.toValue $ "/" `append` Types.name s)) $ H.toHtml (Types.name s))
 
 synapse :: Types.Synapse -> H.Html
 synapse synapseRow = H.docTypeHtml $ do

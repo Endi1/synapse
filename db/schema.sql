@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS "schema_migrations" (version varchar(255) primary key);
 CREATE TABLE synapses (
     id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
     content TEXT NOT NULL
 );
 -- Dbmate schema migrations

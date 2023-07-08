@@ -6,6 +6,7 @@ module Handlers (index, synapse) where
 import Database.SQLite.Simple
 import RIO (MonadIO (liftIO))
 import RIO.List (headMaybe)
+import RIO.Text (Text)
 import Templates qualified
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Types (Synapse)
@@ -17,9 +18,9 @@ index =
     rows <- liftIO getRows
     Scotty.html $ renderHtml $ Templates.index rows
 
-synapse :: Integer -> Scotty.ActionM ()
-synapse rowID = do
-  row <- liftIO $ getRow rowID
+synapse :: Text -> Scotty.ActionM ()
+synapse name = do
+  row <- liftIO $ getRow name
   case row of
     Nothing -> Scotty.text "Synapse could not be found"
     Just s -> Scotty.html $ renderHtml $ Templates.synapse s
@@ -29,8 +30,8 @@ getRows = do
   conn <- open "/home/endi/.synapse.db"
   query_ conn "SELECT id, name, content FROM synapses" :: IO [Synapse]
 
-getRow :: Integer -> IO (Maybe Synapse)
-getRow rowID = do
+getRow :: Text -> IO (Maybe Synapse)
+getRow name = do
   conn <- open "/home/endi/.synapse.db"
-  rows <- query conn "SELECT id, name, content FROM synapses WHERE id=?" (Only rowID) :: IO [Synapse]
+  rows <- query conn "SELECT id, name, content FROM synapses WHERE name=?" (Only name) :: IO [Synapse]
   return $ headMaybe rows

@@ -5,7 +5,9 @@ module Commands (execute) where
 
 import Database.SQLite.Simple qualified as DB
 import Handlers qualified
+import Parser (createConnections)
 import RIO (Int64)
+import RIO.List (headMaybe)
 import Types (Arguments, Command (..), command, options)
 import Web.Scotty qualified as Scotty
 
@@ -18,15 +20,21 @@ execute args = case command args of
 
 import' :: [String] -> IO Int64
 import' args = do
-  file <- readFile (head args)
+  file <- createConnections <$> readFile (head args)
   conn <- DB.open "/home/endi/.synapse.db"
-  _ <- DB.execute conn "INSERT INTO synapses (content, name) VALUES (?, ?)" (file, head args)
-  DB.lastInsertRowId conn
+  existing <- DB.query conn "SELECT id FROM synapses WHERE name=?" (DB.Only $ head args) :: IO [DB.Only Int64]
+  case headMaybe existing of
+    Just i -> do
+      _ <- DB.execute conn "UPDATE synapses SET content=?" (DB.Only file)
+      return $ DB.fromOnly i
+    Nothing -> do
+      _ <- DB.execute conn "INSERT INTO synapses (content, name) VALUES (?, ?)" (file, head args)
+      DB.lastInsertRowId conn
 
 serve' :: IO ()
 serve' =
   Scotty.scotty 3000 $ do
     Scotty.get "/" Handlers.index
-    Scotty.get "/:id" $ do
-      rowID <- Scotty.param "id"
-      Handlers.synapse rowID
+    Scotty.get "/:name" $ do
+      name <- Scotty.param "name"
+      Handlers.synapse name
